@@ -38,3 +38,11 @@ def test_template_repo_matches_the_package():
 def test_workflow_reads_author_from_settings():
     workflow = yaml.safe_load(templates.workflow("weekly"))
     assert workflow["jobs"]["scan"]["steps"][-1]["with"]["author"] == "${{ vars.RADAR_AUTHOR }}"
+
+
+def test_action_metadata_fits_the_marketplace():
+    from pathlib import Path
+
+    action = yaml.safe_load((Path(__file__).parent.parent / "action.yml").read_text())
+    assert len(action["description"]) <= 125
+    assert action["branding"] == {"icon": "radio", "color": "purple"}

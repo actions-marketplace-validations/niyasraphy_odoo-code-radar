@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.1.3
+
+- Shorter Action description (the GitHub Marketplace allows 125 characters).
+
 ## 0.1.2
 
 - Clearer wording: "Protect your Odoo intellectual property: find unauthorized copies of your
