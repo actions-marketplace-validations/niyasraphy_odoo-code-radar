@@ -1,14 +1,14 @@
 # Odoo Code Radar for my apps
 
-Checks GitHub every week for public copies of my paid Odoo apps, using
-[odoo-code-radar](https://github.com/niyasraphy/odoo-code-radar). Each new copy becomes an issue in
-this repository, and GitHub emails me. Nothing to install, nothing to host.
+Protects my Odoo intellectual property: every week it checks GitHub for unauthorized copies of my
+proprietary apps, using [odoo-code-radar](https://github.com/niyasraphy/odoo-code-radar). Each new
+copy becomes an issue in this repository, and GitHub emails me. Nothing to install, nothing to host.
 
 ## Setup (5 minutes)
 
 **1. Keep this repository private.** If you made it public, switch it: Settings → General → Danger
-Zone → Change visibility. The issues show where your apps leaked, so odoo-code-radar refuses to
-open them in a public repo.
+Zone → Change visibility. The issues show where copies of your apps are, so odoo-code-radar refuses
+to open them in a public repo.
 
 **2. Add your author name.** Settings → Secrets and variables → Actions → **Variables** tab → New
 repository variable:
@@ -30,8 +30,9 @@ From then on it runs every Monday by itself.
 
 ## What you get
 
-- **An issue for each leak** (one app found in one repository), with the evidence, the module folder
-  links and a DMCA notice draft. Each leak is reported only once. Close the issue when it is handled.
+- **An issue for each unauthorized copy** (one app found in one repository), with the evidence,
+  the module folder links and a DMCA notice draft. Each copy is reported only once. Close the
+  issue when it is handled.
 - **An email from GitHub** for each new issue, through your normal GitHub notifications.
 - **The full report** attached to each run (Actions → the run → Artifacts).
 
@@ -49,10 +50,10 @@ Issues are opened with the workflow's own token, so `RADAR_TOKEN` needs no write
 - **Read your modules from your own repo, include LGPL apps, ignore accounts:** see
   [`odoo-code-radar.yml`](odoo-code-radar.yml).
 
-## Handling a leak
+## Handling an unauthorized copy
 
 1. Open the issue and check the folder links: is it really your code?
-2. Optionally ask the repository owner to remove it. Many leaks are accidental.
+2. Optionally ask the repository owner to remove it. Many copies are published by accident.
 3. Otherwise file the DMCA draft from the issue at https://github.com/contact/dmca (fill in the
    brackets, check every link). You sign it, so read it first.
 4. Close the issue once the copy is gone.

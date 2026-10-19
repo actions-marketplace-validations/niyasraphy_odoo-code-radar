@@ -126,7 +126,7 @@ def finding_markdown(finding: Finding, heading: str = "###") -> str:
 def issue_body(finding: Finding) -> str:
     action = (
         f"1. Check the module folders above.\n"
-        f"2. Optionally ask the repository owner to remove them; many leaks are accidental.\n"
+        f"2. Optionally ask the repository owner to remove them; many copies are published by accident.\n"
         f"3. Otherwise file a takedown at {DMCA_FORM} using the draft below "
         f"([GitHub's guide]({DMCA_GUIDE})).\n"
         f"4. Close this issue once it is handled. odoo-code-radar will not report this repository "
@@ -165,7 +165,7 @@ def write_report(new: list[Finding], known: list[Finding], report_dir: Path) -> 
         for finding in new:
             sections.append(finding_markdown(finding))
         sections.append(
-            "## DMCA notice draft for all new leaks\n\n"
+            "## DMCA notice draft for all new unauthorized copies\n\n"
             f"Check every link before filing, fill in the brackets, then paste it into {DMCA_FORM} "
             "or email it to copyright@github.com.\n"
         )

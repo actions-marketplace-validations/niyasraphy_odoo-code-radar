@@ -37,13 +37,13 @@ def test_scan_reports_once_and_remembers(tmp_path, monkeypatch):
     first = runner.invoke(cli.app, ["scan", "--path", "addons"])
     assert first.exit_code == 0, first.output
     assert "Watching 1 modules (1 open-license modules skipped" in first.output
-    assert "1 new leak(s)" in first.output
+    assert "1 new unauthorized copy," in first.output
     assert "run no server and never see it" in first.output
     assert not any("om_free" in q for q in gh.queries)
 
     second = runner.invoke(cli.app, ["scan", "--path", "addons"])
     assert second.exit_code == 0, second.output
-    assert "No new leaks (1 already reported)" in second.output
+    assert "No new unauthorized copies (1 already reported)" in second.output
     assert len(list((tmp_path / "reports").glob("*.md"))) == 2
 
 

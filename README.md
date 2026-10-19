@@ -1,11 +1,10 @@
 # odoo-code-radar
 
-**Protect your paid Odoo apps and intellectual property: find copies in public GitHub repositories.**
+**Protect your Odoo intellectual property: find unauthorized copies of your proprietary apps on GitHub.**
 
 When a customer buys your app and pushes their addons to a public repo, anyone can take it from
-there, and you lose sales. odoo-code-radar watches GitHub for your paid apps and other intellectual
-property, tells you about each new copy once, and hands you a ready DMCA notice draft. You decide
-what to do with it.
+there. odoo-code-radar watches GitHub for your proprietary Odoo apps, tells you about each new
+unauthorized copy once, and hands you a ready DMCA notice draft. You decide what to do with it.
 
 Free and open source. It runs only on your machine or in your own GitHub Actions. There is no server,
 no account and no service behind it, so your token and results never reach the authors of this tool.
@@ -18,7 +17,7 @@ Searching GitHub. Code search allows 10 queries a minute, so this takes about 8 
      Module                 License  Repository                               Confidence  Forks
  🔴  your_module_accountant OPL-1    https://github.com/someone/odoo18-addons  high (110)  3
 
-1 new leak(s), 0 already reported. DMCA drafts are in the report.
+1 new unauthorized copy, 0 already reported. DMCA drafts are in the report.
 Report: reports/odoo-code-radar-2026-10-19-061502.md
 ```
 
@@ -40,7 +39,7 @@ Report: reports/odoo-code-radar-2026-10-19-061502.md
      (Public repositories, read-only, no extra permissions)
 3. Actions → **Odoo Code Radar** → **Run workflow**.
 
-It then runs every Monday. Each leak becomes an issue in your repo, with a DMCA draft, and GitHub
+It then runs every Monday. Each unauthorized copy becomes an issue in your repo, with a DMCA draft, and GitHub
 emails you.
 
 ## How it works
@@ -48,7 +47,7 @@ emails you.
 1. **Your module list** comes from one of two places:
    - **Your author name** on apps.odoo.com. Quick to set up. Results stay on your machine.
    - **Your own GitHub repo** (or a local addons folder). More accurate, since it reads your real
-     manifests. New leaks become **GitHub issues in that repo**, so GitHub emails you.
+     manifests. New unauthorized copies become **GitHub issues in that repo**, so GitHub emails you.
 
    Only the technical name, the manifest name, the license and the author are read. Your code is never
    read or uploaded.
@@ -70,12 +69,12 @@ emails you.
 4. **Licenses.** OPL-1 and other proprietary modules are always watched. LGPL-3 and other open-source
    licenses allow buyers to share the module, so those are off by default (`--include-lgpl` turns them on).
 
-5. **Reporting.** Each leak (one module in one repo) is reported once. Every run writes a Markdown and
-   JSON report to `reports/`, ending with one DMCA notice draft for all new leaks, laid out like
+5. **Reporting.** Each unauthorized copy (one module in one repo) is reported once. Every run writes a Markdown and
+   JSON report to `reports/`, ending with one DMCA notice draft for all new copies, laid out like
    [GitHub's takedown form](https://github.com/contact/dmca): whole repositories and single folders
    listed separately, and only the forks that still contain your module.
 
-odoo-code-radar never files takedowns itself. Many leaks are accidental and a friendly message to the
+odoo-code-radar never files takedowns itself. Many copies are published by accident, and a friendly message to the
 repo owner is often enough. A takedown is a legal statement that you make.
 
 ## Install
@@ -115,7 +114,7 @@ and receive nothing from you.
   author name) and reads of public manifests. Nothing else, and nothing to us.
 - **What stays local:** your module list, the results, `reports/` and `.odoo-code-radar/`. With
   `--repo`, issues are opened in your own repo with your own token.
-- **Issues only go to private repos.** They show where your apps leaked, so odoo-code-radar checks the
+- **Issues only go to private repos.** They show where copies of your apps are, so odoo-code-radar checks the
   repo's visibility first and refuses to open issues in a public one.
 - **Least privilege:** use a fine-grained token limited to the repos it needs, with only the
   permissions above, and an expiry date. Revoke it at any time in your GitHub settings.
@@ -132,19 +131,19 @@ odoo-code-radar modules --author "Your Company"   # check which modules it found
 odoo-code-radar scan --author "Your Company"
 ```
 
-Already-reported leaks are remembered in `.odoo-code-radar/reported.json`.
+Already-reported copies are remembered in `.odoo-code-radar/reported.json`.
 
-### From your repo: leaks become issues
+### From your repo: unauthorized copies become issues
 
 ```
-odoo-code-radar scan --repo you/paid-apps --branch 17.0 --branch 18.0
+odoo-code-radar scan --repo you/odoo-apps --branch 17.0 --branch 18.0
 ```
 
-Each new leak opens an issue in `you/paid-apps` with the evidence and a DMCA draft, and GitHub emails
-you as usual. The issues are the memory: once an issue exists (open or closed), that leak is never
+Each new unauthorized copy opens an issue in `you/odoo-apps` with the evidence and a DMCA draft, and GitHub emails
+you as usual. The issues are the memory: once an issue exists (open or closed), that copy is never
 reported again. Close it when it is handled.
 
-Use `--issues-repo you/leak-reports` to send issues elsewhere, or `--no-issues` to keep results local.
+Use `--issues-repo you/radar-reports` to send issues elsewhere, or `--no-issues` to keep results local.
 
 ### Config file
 
@@ -154,7 +153,7 @@ up on its own:
 ```yaml
 author: Your Company
 sources:
-  - repo: you/paid-apps
+  - repo: you/odoo-apps
     branches: ["17.0", "18.0"]
   - path: ~/odoo/custom_addons
 include_lgpl: false
@@ -162,7 +161,7 @@ min_confidence: medium
 ignore_owners: [you, your-company]   # your own accounts
 ignore_repos: [customer/allowed-repo]
 exclude_modules: [some_free_module]
-# issues_repo: you/leak-reports
+# issues_repo: you/radar-reports
 ```
 
 Options given on the command line override the file.
@@ -211,7 +210,7 @@ odoo-code-radar schedule remove            # stop it (and optionally delete the 
 The setup uses your [GitHub CLI](https://cli.github.com) login (`gh auth login`, plus
 `gh auth refresh -s workflow` once). The scan token can therefore stay read-only: **Contents: Read** on
 your module repo, or no permissions with `author` only. Issues are opened with the workflow's own
-token. New leaks become issues in that repo, and GitHub emails you.
+token. New unauthorized copies become issues in that repo, and GitHub emails you.
 
 Without the GitHub CLI, the command writes the workflow into your folder and lists the remaining
 steps: push it, add the secret, start the first run.
@@ -247,7 +246,7 @@ A full scan takes about 6.5 seconds per search query because of GitHub's search 
 
 ## Limits
 
-- GitHub code search only indexes default branches, and not every repo. A leak on another branch or
+- GitHub code search only indexes default branches, and not every repo. A copy on another branch or
   in a very large repo can be missed.
 - Other sites (GitLab, Bitbucket, download sites) are not searched yet.
 - Scores are evidence, not proof. Look before you file anything.

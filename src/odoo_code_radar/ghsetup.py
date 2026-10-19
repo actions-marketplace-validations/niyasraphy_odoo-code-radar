@@ -118,6 +118,6 @@ class GhCli:
 def check_private(info: dict[str, Any], repo: str) -> None:
     if not info.get("private"):
         raise SetupError(
-            f"{repo} is public. Its issues would show everyone where your apps leaked. "
+            f"{repo} is public. Its issues would show everyone where copies of your apps are. "
             "Make it private (Settings → General → Danger Zone → Change visibility) or use another repo."
         )

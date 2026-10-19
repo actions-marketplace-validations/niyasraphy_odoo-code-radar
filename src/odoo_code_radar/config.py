@@ -126,7 +126,7 @@ def render(config: Config) -> str:
     else:
         lines += [
             "# sources:",
-            "#   - repo: you/paid-apps",
+            "#   - repo: you/odoo-apps",
             '#     branches: ["17.0", "18.0"]',
             "#   - path: ~/addons",
         ]

@@ -1,5 +1,5 @@
-"""Protect your paid Odoo apps and intellectual property: find copies in public GitHub repositories."""
+"""Protect your Odoo intellectual property: find unauthorized copies of your proprietary apps on GitHub."""
 
-__version__ = "0.1.1"
+__version__ = "0.1.2"
 
 REPO_URL = "https://github.com/niyasraphy/odoo-code-radar"

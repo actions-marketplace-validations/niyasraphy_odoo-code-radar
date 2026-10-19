@@ -74,7 +74,7 @@ def test_local_state_round_trip(tmp_path):
 def test_write_report(tmp_path):
     md, js = write_report([make_finding()], [make_finding("old/repo")], tmp_path)
     assert "1 new" in md.read_text()
-    assert "DMCA notice draft for all new leaks" in md.read_text()
+    assert "DMCA notice draft for all new unauthorized copies" in md.read_text()
     assert json.loads(js.read_text())["known"][0]["repo"] == "old/repo"
 
 

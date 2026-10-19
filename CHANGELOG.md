@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.1.2
+
+- Clearer wording: "Protect your Odoo intellectual property: find unauthorized copies of your
+  proprietary apps on GitHub." Messages speak of unauthorized copies of your proprietary apps.
+
 ## 0.1.1
 
 - DMCA drafts follow GitHub's takedown form: entire repositories and single folders are listed

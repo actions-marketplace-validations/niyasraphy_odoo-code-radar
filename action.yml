@@ -1,5 +1,5 @@
 name: Odoo Code Radar
-description: Protect your paid Odoo apps and intellectual property. Finds copies in public GitHub repos and opens an issue for each new one.
+description: Protect your Odoo intellectual property. Finds unauthorized copies of your proprietary apps on GitHub and opens an issue for each.
 author: niyasraphy
 branding:
   icon: radio

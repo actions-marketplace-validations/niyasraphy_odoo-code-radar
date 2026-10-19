@@ -5,7 +5,7 @@ build-backend = "hatchling.build"
 [project]
 name = "odoo-code-radar"
 dynamic = ["version"]
-description = "Protect your paid Odoo apps and intellectual property: find copies in public GitHub repositories, with a ready DMCA draft for each leak."
+description = "Protect your Odoo intellectual property: find unauthorized copies of your proprietary apps on GitHub, with a ready DMCA notice draft."
 readme = "README.md"
 requires-python = ">=3.10"
 license = "MIT"

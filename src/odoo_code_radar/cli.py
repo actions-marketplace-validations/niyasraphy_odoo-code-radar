@@ -28,8 +28,11 @@ from .scanner import Scanner, ScanOptions, guess_vendor_author
 from .sources import merge_modules, modules_from_path, modules_from_repo, modules_from_store
 from .state import IssueReporter, LocalState
 
+TAGLINE = (
+    "Protect your Odoo intellectual property: find unauthorized copies of your proprietary apps on GitHub."
+)
 app = typer.Typer(
-    help="Protect your paid Odoo apps and intellectual property: find copies in public GitHub repositories.",
+    help=TAGLINE,
     no_args_is_help=True,
     add_completion=False,
 )
@@ -126,14 +129,14 @@ def _github(token_var: str | None = None) -> GitHub:
 
 
 def _require_private(gh: GitHub, repo: str) -> None:
-    """Issues list where your apps leaked, so they only ever go to a private repo."""
+    """Issues list where your apps were copied, so they only ever go to a private repo."""
     try:
         info = gh.repo(repo)
     except GitHubError as exc:
         raise _fail(f"Cannot open {repo} for issues: {exc}") from exc
     if not info.get("private"):
         raise _fail(
-            f"{repo} is public, so its issues would show everyone where your apps leaked.\n"
+            f"{repo} is public, so its issues would show everyone where copies of your apps are.\n"
             "  Make it private, set issues_repo to a private repo, or use --no-issues."
         )
 
@@ -221,7 +224,7 @@ def init(
     if path.exists() and not typer.confirm(f"{path} exists. Overwrite it?", default=False):
         raise typer.Exit()
     console.print("Your modules can come from the Odoo Apps store (by author name), from your own GitHub")
-    console.print("repo (more accurate, and leaks become issues there), or both.\n")
+    console.print("repo (more accurate, and unauthorized copies become issues there), or both.\n")
     cfg = Config()
     cfg.author = typer.prompt(
         "Author name on apps.odoo.com (empty to skip)", default="", show_default=False
@@ -285,7 +288,7 @@ def scan(
         None, "--min-confidence", help="low, medium (default) or high."
     ),
     issues: Optional[bool] = typer.Option(
-        None, "--issues/--no-issues", help="Open an issue for each new leak."
+        None, "--issues/--no-issues", help="Open an issue for each new unauthorized copy."
     ),
     issues_repo: Optional[str] = typer.Option(
         None, "--issues-repo", help="Where issues go (default: first --repo)."
@@ -293,7 +296,7 @@ def scan(
     report_dir: Optional[Path] = typer.Option(None, "--report-dir", help="Where reports are written."),
     refresh: bool = REFRESH_OPT,
     notify_desktop: bool = typer.Option(
-        False, "--notify", help="Desktop notification when new leaks are found (scheduled scans use it)."
+        False, "--notify", help="Desktop notification when new copies are found (scheduled scans use it)."
     ),
 ) -> None:
     """Search GitHub for copies of your modules and report the new ones."""
@@ -364,16 +367,23 @@ def scan(
     Path(cfg.state_dir, "last-run.json").write_text(json.dumps(last_run, indent=2), encoding="utf-8")
     if notify_desktop and new:
         where = f"Issues opened in {target}." if reporter else f"See {md_path.resolve()}"
-        notify.desktop("odoo-code-radar", f"{len(new)} new copy(ies) of your Odoo apps found. {where}")
+        notify.desktop(
+            "odoo-code-radar",
+            f"{_copies(len(new))} of your Odoo apps found. {where}",
+        )
     for message in scanner.errors[:10]:
         err.print(f"[yellow]![/yellow] {escape(message)}")
     if len(scanner.errors) > 10:
         err.print(f"[yellow]![/yellow] … and {len(scanner.errors) - 10} more GitHub errors")
 
 
+def _copies(count: int) -> str:
+    return f"{count} new unauthorized cop{'y' if count == 1 else 'ies'}"
+
+
 def _print_findings(new: list[Finding], known: list[Finding], issues: bool) -> None:
     if not new:
-        console.print(f"[green]✓[/green] No new leaks ({len(known)} already reported).")
+        console.print(f"[green]✓[/green] No new unauthorized copies ({len(known)} already reported).")
         return
     table = Table(header_style="bold")
     for column in ("", "Module", "License", "Repository", "Confidence", "Forks"):
@@ -389,7 +399,7 @@ def _print_findings(new: list[Finding], known: list[Finding], issues: bool) -> N
         )
     console.print(table)
     where = "Issues opened, GitHub will email you." if issues else "DMCA drafts are in the report."
-    console.print(f"[bold]{len(new)} new leak(s)[/bold], {len(known)} already reported. {where}")
+    console.print(f"[bold]{_copies(len(new))}[/bold], {len(known)} already reported. {where}")
     for f in new:
         console.print(f"  • {escape(title(f))}")
 
@@ -490,7 +500,9 @@ def _schedule_local(directory: Path, cfg: Config, config_path: Path, frequency: 
                 raise _fail("Write the repo as owner/name.")
             _require_private(gh, target)
             with config_path.open("a", encoding="utf-8") as handle:
-                handle.write("\n# Added by `odoo-code-radar schedule`: where new leaks become issues.\n")
+                handle.write(
+                    "\n# Added by `odoo-code-radar schedule`: where new unauthorized copies become issues.\n"
+                )
                 handle.write(f"issues_repo: {target}\n")
     elif target:
         _require_private(gh, target)
@@ -507,9 +519,13 @@ def _schedule_local(directory: Path, cfg: Config, config_path: Path, frequency: 
     for note in notes:
         console.print(f"  {note}")
     if target:
-        console.print(f"New leaks become issues in [bold]{target}[/bold], and GitHub emails you.")
+        console.print(
+            f"New unauthorized copies become issues in [bold]{target}[/bold], and GitHub emails you."
+        )
     else:
-        console.print(f"New leaks go to {directory / cfg.report_dir}, with a desktop notification.")
+        console.print(
+            f"New unauthorized copies go to {directory / cfg.report_dir}, with a desktop notification."
+        )
     console.print(f"Log: {job.log}")
     console.print(
         "Check it: [bold]odoo-code-radar schedule status[/bold]. Stop it: [bold]schedule remove[/bold]."
@@ -588,7 +604,7 @@ def _schedule_github(
     )
     console.print(f"  Runs: https://github.com/{repo}/actions")
     console.print(
-        f"New leaks become issues in [bold]{repo}[/bold], and GitHub emails you. Nothing runs here."
+        f"New copies become issues in [bold]{repo}[/bold], and GitHub emails you. Nothing runs here."
     )
 
 

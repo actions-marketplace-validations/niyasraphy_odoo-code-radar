@@ -9,7 +9,7 @@
 # More accurate: read your modules from your own repos. RADAR_TOKEN then needs
 # "Contents: Read" on them.
 # sources:
-#   - repo: you/paid-apps
+#   - repo: you/odoo-apps
 #     branches: ["17.0", "18.0"]
 
 # OPL-1 and other proprietary apps are always watched. LGPL-3 apps may legally be
