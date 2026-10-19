@@ -22,6 +22,27 @@ Searching GitHub. Code search allows 10 queries a minute, so this takes about 8 
 Report: reports/odoo-code-radar-2026-10-19-061502.md
 ```
 
+## Three ways to use it
+
+| | For | Setup |
+|---|---|---|
+| **[Template](https://github.com/niyasraphy/odoo-code-radar-template)** | most vendors: nothing to install | **Use this template** → Private, add your author name and a token in Settings, run |
+| **CLI** | a one-off check or your own server | `pipx install odoo-code-radar`, then `odoo-code-radar scan --author "Your Company"` |
+| **CLI + `schedule`** | automatic scans set up from the terminal | `odoo-code-radar schedule weekly` (this machine) or `--github` (GitHub Actions) |
+
+### The template: weekly scans without installing anything
+
+1. Open [odoo-code-radar-template](https://github.com/niyasraphy/odoo-code-radar-template) →
+   **Use this template** → **Create a new repository** → choose **Private**.
+2. In your new repo: Settings → Secrets and variables → Actions:
+   - **Variables** tab: `RADAR_AUTHOR` = your author name on apps.odoo.com
+   - **Secrets** tab: `RADAR_TOKEN` = a [fine-grained token](https://github.com/settings/personal-access-tokens/new)
+     (Public repositories, read-only, no extra permissions)
+3. Actions → **Odoo Code Radar** → **Run workflow**.
+
+It then runs every Monday. Each leak becomes an issue in your repo, with a DMCA draft, and GitHub
+emails you.
+
 ## How it works
 
 1. **Your module list** comes from one of two places:
@@ -50,8 +71,9 @@ Report: reports/odoo-code-radar-2026-10-19-061502.md
    licenses allow buyers to share the module, so those are off by default (`--include-lgpl` turns them on).
 
 5. **Reporting.** Each leak (one module in one repo) is reported once. Every run writes a Markdown and
-   JSON report to `reports/` with a DMCA draft for each new leak, ready for
-   [GitHub's takedown form](https://github.com/contact/dmca-takedown).
+   JSON report to `reports/`, ending with one DMCA notice draft for all new leaks, laid out like
+   [GitHub's takedown form](https://github.com/contact/dmca): whole repositories and single folders
+   listed separately, and only the forks that still contain your module.
 
 odoo-code-radar never files takedowns itself. Many leaks are accidental and a friendly message to the
 repo owner is often enough. A takedown is a legal statement that you make.
@@ -215,7 +237,7 @@ steps:
 | `token` | (required) | Token for search and for reading your module repo |
 | `issues-token` | `github.token` | Token used to open issues |
 | `config` | `odoo-code-radar.yml` | Config file |
-| `author` | | Author name on apps.odoo.com |
+| `author` | | Author name on apps.odoo.com (the template passes `vars.RADAR_AUTHOR`) |
 | `repos` | | Module repos, space separated |
 | `include-lgpl` | `false` | Also watch open-license modules |
 | `issues-repo` | the current repo | Where issues go (`none` to disable) |

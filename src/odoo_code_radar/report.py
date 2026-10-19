@@ -18,63 +18,80 @@ def title(finding: Finding) -> str:
     return f"[{finding.module.license}] {finding.module.technical_name} found in {finding.repo}"
 
 
-def dmca_draft(finding: Finding) -> str:
-    module = finding.module
-    files = "\n".join(f"- {url}" for url in finding.files.values()) or f"- {finding.repo_url}"
-    forks = "\n".join(f"- https://github.com/{fork}" for fork in finding.forks)
-    if finding.fork_count > len(finding.forks):
-        forks += f"\n- … {finding.fork_count - len(finding.forks)} more forks, see {finding.repo_url}/forks"
-    original = module.url or "[LINK TO YOUR MODULE ON APPS.ODOO.COM]"
-    license_note = (
-        f"The module is sold under the {module.license} license, which does not allow the buyer to "
-        "publish or redistribute it."
-        if module.proprietary
-        else f"The module is licensed under {module.license}. [EXPLAIN WHY THIS COPY STILL INFRINGES]"
+OPL_QUOTE = (
+    'OPL-1 lets buyers use and modify the software, but says they "may not publish, distribute, '
+    'sublicense, and/or sell copies of the Software or modified copies of the Software."'
+)
+
+
+def _license_note(findings: list[Finding]) -> str:
+    licenses = sorted({f.module.license for f in findings})
+    if all(f.module.proprietary for f in findings):
+        names = ", ".join(licenses)
+        note = f"They are sold under the {names} license, which does not allow buyers to publish them."
+        return note + (f" {OPL_QUOTE}" if licenses == ["OPL-1"] else "")
+    return f"They are licensed under {', '.join(licenses)}. [EXPLAIN WHY THESE COPIES STILL INFRINGE]"
+
+
+def dmca_draft(findings: list[Finding]) -> str:
+    """One notice for one or more leaks, in the order of GitHub's takedown form."""
+    modules = {f.module.technical_name: f.module for f in findings}
+    works = "\n".join(
+        f"- {m.display_name} (technical name {m.technical_name}): "
+        f"{m.url or '[LINK TO THE MODULE ON APPS.ODOO.COM]'}"
+        for m in modules.values()
     )
-    owner = finding.repo.split("/")[0]
-    return f"""I have read and understand GitHub's Guide to Filing a DMCA Notice.
+    whole = [f.repo_url for f in findings if f.whole_repo]
+    folders = [link for f in findings for link in f.folder_links()]
+    fork_repos = sorted({fork for f in findings for fork in f.forks})
+    fork_folders = [
+        link
+        for f in findings
+        for fork, branch in sorted(f.forks.items())
+        for link in f.folder_links(fork, branch)
+    ]
+    fork_whole = sorted({fork for f in findings if f.whole_repo for fork in f.forks})
+    users = sorted({f.repo.split("/")[0] for f in findings} | {fork.split("/")[0] for fork in fork_repos})
 
-**1. Copyrighted work**
-I am the copyright owner (or authorized to act for the owner) of the Odoo module
-“{module.display_name}” (technical name `{module.technical_name}`), published at:
-{original}
-
-{license_note}
-
-**2. Infringing material**
-The following folders in {finding.repo_url} are unauthorized copies of that module:
-{files}
-
-[THE WHOLE REPOSITORY INFRINGES / ONLY THE FOLDERS LISTED ABOVE INFRINGE]
-
-**3. Forks**
-{forks or "No forks at the time of this report."}
-{"I have reason to believe all forks listed above infringe for the same reason." if forks else ""}
-
-**4. How the user can fix it**
-Remove the module folder(s) listed above from the repository.
-
-**Infringer**
-GitHub user: https://github.com/{owner}
-
-**5. Contact information**
-Name: [YOUR FULL LEGAL NAME]
-Company: [COMPANY]
-Address: [ADDRESS]
-Email: [EMAIL]
-Phone: [PHONE]
-
-**6. Statements**
-I have a good faith belief that use of the copyrighted materials described above on the infringing
-web pages is not authorized by the copyright owner, or its agent, or the law. I have taken fair use
-into consideration.
-
-I swear, under penalty of perjury, that the information in this notification is accurate and that I
-am the copyright owner, or am authorized to act on behalf of the owner, of an exclusive right that is
-allegedly infringed.
-
-Signature: [YOUR FULL LEGAL NAME]
-"""
+    sections = [
+        "I have read and understand GitHub's Guide to Filing a DMCA Notice.",
+        "**Copyrighted work**\n"
+        "I am the copyright owner (or authorized to act for the owner) of these Odoo modules, sold on the "
+        f"official Odoo Apps Store:\n{works}\n\n{_license_note(findings)}",
+    ]
+    if whole:
+        sections.append("**Entire repositories** (each contains only the copied module)\n" + "\n".join(whole))
+    if folders or fork_folders:
+        sections.append(
+            "**Specific files** (all files inside each folder infringe; the rest of each repository is "
+            "not affected)\n" + "\n".join(folders + fork_folders)
+        )
+    if fork_repos:
+        partial = " The forks of entire repositories above infringe entirely." if fork_whole else ""
+        sections.append(
+            "**Forks** (repository URLs only, one per line, as the form asks; each one was checked and "
+            "still contains the copied module)\n"
+            + "\n".join(f"https://github.com/{f}" for f in fork_repos)
+            + f"\n\nIn each fork, only the copied module folder listed above infringes.{partial}"
+        )
+    else:
+        sections.append("**Forks**\nNo forks contain the copied module.")
+    if all(f.module.proprietary for f in findings):
+        sections.append("**Open source license?**\nNo. The modules are under a proprietary license.")
+    sections += [
+        "**How to fix it**\nRemove the listed folders (and the entire repositories listed above), "
+        "including in the forks.",
+        "**Alleged infringers (GitHub users)**\n" + ", ".join(users),
+        "**Contact information**\nName: [YOUR FULL LEGAL NAME]\nCompany: [COMPANY]\n"
+        "Address: [STREET, CITY, POSTCODE, COUNTRY]\nEmail: [EMAIL]\nPhone: [PHONE WITH COUNTRY CODE]",
+        "**Statements**\nI have a good faith belief that use of the copyrighted materials described above "
+        "on the infringing web pages is not authorized by the copyright owner, or its agent, or the law. "
+        "I have taken fair use into consideration.\n\n"
+        "I swear, under penalty of perjury, that the information in this notification is accurate and "
+        "that I am the copyright owner, or am authorized to act on behalf of the owner, of an exclusive "
+        "right that is allegedly infringed.\n\nSignature: [YOUR FULL LEGAL NAME]",
+    ]
+    return "\n\n".join(sections) + "\n"
 
 
 def finding_markdown(finding: Finding, heading: str = "###") -> str:
@@ -83,6 +100,9 @@ def finding_markdown(finding: Finding, heading: str = "###") -> str:
     reasons = "\n".join(f"- {reason}" for reason in finding.reasons)
     versions = ", ".join(sorted(finding.odoo_versions)) or "unknown"
     icon = "🔴" if finding.priority == "high" else "🟡"
+    forks = (
+        f"{finding.fork_count} ({len(finding.forks)} still contain the module)" if finding.fork_count else "0"
+    )
     return f"""{heading} {icon} {module.display_name} → [{finding.repo}]({finding.repo_url})
 
 | | |
@@ -90,7 +110,8 @@ def finding_markdown(finding: Finding, heading: str = "###") -> str:
 | Module | `{module.technical_name}` ({module.license}{", " + module.price if module.price else ""}) |
 | Repository | {finding.repo_url} |
 | Odoo versions found | {versions} |
-| Forks | {finding.fork_count} |
+| Scope | {"whole repository" if finding.whole_repo else "only the module folder"} |
+| Forks | {forks} |
 | Priority | {finding.priority} |
 | Confidence | {finding.confidence} ({finding.score} points) |
 
@@ -117,7 +138,7 @@ def issue_body(finding: Finding) -> str:
 
 <details><summary>DMCA notice draft (fill in the parts in brackets)</summary>
 
-{dmca_draft(finding)}
+{dmca_draft([finding])}
 </details>
 
 ---
@@ -143,9 +164,12 @@ def write_report(new: list[Finding], known: list[Finding], report_dir: Path) -> 
         sections.append("## New\n")
         for finding in new:
             sections.append(finding_markdown(finding))
-            sections.append(
-                f"<details><summary>DMCA notice draft</summary>\n\n{dmca_draft(finding)}\n</details>\n"
-            )
+        sections.append(
+            "## DMCA notice draft for all new leaks\n\n"
+            f"Check every link before filing, fill in the brackets, then paste it into {DMCA_FORM} "
+            "or email it to copyright@github.com.\n"
+        )
+        sections.append(dmca_draft(new))
     if known:
         sections.append("## Already reported\n")
         sections.extend(f"- {title(f)} ({f.confidence})" for f in known)

@@ -14,7 +14,8 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 60
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: niyasraphy/odoo-code-radar@v1
         with:
           token: ${{ secrets.RADAR_TOKEN }}
+          author: ${{ vars.RADAR_AUTHOR }}   # optional; or set author in odoo-code-radar.yml

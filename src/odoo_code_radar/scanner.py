@@ -18,7 +18,7 @@ from .manifest import (
     parse_manifest,
     search_phrase,
 )
-from .models import CONFIDENCE_LEVELS, Finding, Module
+from .models import CONFIDENCE_LEVELS, ROOT_FOLDER, Finding, Module
 
 Progress = Callable[[str], None]
 
@@ -92,7 +92,7 @@ def score(module: Module, folder: str, manifest: dict[str, Any], vendor_author: 
 def module_location(repo: str, ref: str, manifest_path: str) -> tuple[str, str]:
     """(folder, link) for the module folder holding a manifest; what a takedown should point at."""
     if "/" not in manifest_path:
-        return "(repository root)", f"https://github.com/{repo}"
+        return ROOT_FOLDER, f"https://github.com/{repo}"
     folder = manifest_path.rsplit("/", 1)[0]
     return folder, f"https://github.com/{repo}/tree/{quote(ref, safe='')}/{quote(folder)}"
 
@@ -209,10 +209,33 @@ class Scanner:
         if version:
             finding.odoo_versions.add(version)
 
-    def add_forks(self, findings: Iterable[Finding], limit: int = 100) -> None:
+    def enrich(self, findings: Iterable[Finding], limit: int = 100) -> None:
+        """Add the default branch and the forks that still hold the module.
+
+        Forks often differ from their parent, and a takedown may only name forks that really infringe.
+        """
         for finding in findings:
             try:
-                finding.forks = self.gh.forks(finding.repo, limit=limit)
-                finding.fork_count = int(self.gh.repo(finding.repo).get("forks_count", len(finding.forks)))
+                info = self.gh.repo(finding.repo)
+                finding.default_branch = str(info.get("default_branch") or "HEAD")
+                finding.fork_count = int(info.get("forks_count") or 0)
+                forks = self.gh.forks(finding.repo, limit=limit) if finding.fork_count else {}
             except GitHubError as exc:
                 self.errors.append(str(exc))
+                continue
+            finding.forks = {
+                fork: branch
+                for fork, branch in forks.items()
+                if self._has_module(fork, branch, finding.folders)
+            }
+
+    def _has_module(self, repo: str, branch: str, folders: list[str]) -> bool:
+        for folder in folders:
+            for name in MANIFEST_FILES:
+                path = f"{folder}/{name}" if folder else name
+                try:
+                    if self.gh.raw(repo, branch, path) is not None:
+                        return True
+                except GitHubError:
+                    continue
+        return False

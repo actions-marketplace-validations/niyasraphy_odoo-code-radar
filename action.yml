@@ -34,16 +34,33 @@ inputs:
 runs:
   using: composite
   steps:
-    - uses: actions/setup-python@v5
+    - uses: actions/setup-python@v7
       with:
         python-version: ${{ inputs.python-version }}
+
+    - name: Check the settings
+      shell: bash
+      env:
+        RADAR_TOKEN_SET: ${{ inputs.token != '' }}
+        RADAR_CONFIG: ${{ inputs.config }}
+        RADAR_AUTHOR: ${{ inputs.author }}
+        RADAR_REPOS: ${{ inputs.repos }}
+      run: |
+        if [ "$RADAR_TOKEN_SET" != "true" ]; then
+          echo "::error title=Token missing::Add your GitHub token as the secret RADAR_TOKEN: Settings > Secrets and variables > Actions > Secrets > New repository secret."
+          exit 1
+        fi
+        if [ -z "$RADAR_AUTHOR$RADAR_REPOS" ] && ! grep -qE '^(author|sources):' "$RADAR_CONFIG" 2>/dev/null; then
+          echo "::error title=Author missing::Set your apps.odoo.com author name as the variable RADAR_AUTHOR: Settings > Secrets and variables > Actions > Variables > New repository variable."
+          exit 1
+        fi
 
     - name: Install odoo-code-radar
       shell: bash
       run: pip install --quiet "$GITHUB_ACTION_PATH"
 
     - name: Remember the store listing between runs
-      uses: actions/cache@v4
+      uses: actions/cache@v6
       with:
         path: .odoo-code-radar
         key: odoo-code-radar-${{ github.run_id }}
@@ -75,7 +92,7 @@ runs:
 
     - name: Keep the report
       if: always()
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v7
       with:
         name: odoo-code-radar-report
         path: reports/

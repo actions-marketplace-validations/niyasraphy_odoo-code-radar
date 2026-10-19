@@ -47,10 +47,10 @@ class FakeGitHub:
         return self.files.get((repo, path))
 
     def forks(self, repo, limit=100):
-        return ["someone/fork"]
+        return {"someone/fork": "main", "other/emptied": "dev"}
 
     def repo(self, repo):
-        return {"forks_count": 3}
+        return {"forks_count": 3, "default_branch": "main"}
 
 
 def test_queries_cover_folder_name_author_and_repo_name():
@@ -123,6 +123,8 @@ def test_scan_finds_copies_and_skips_own_and_unrelated_repos():
             ("odoomates/odooapps", "om_dynamic_reports/__manifest__.py"): LEAKED,
             ("other/repo", "om_other/__manifest__.py"): OTHER,
             ("solo/om_dynamic_reports", "__manifest__.py"): LEAKED,
+            ("someone/fork", "custom/om_dynamic_reports/__manifest__.py"): LEAKED,
+            ("someone/fork", "__manifest__.py"): LEAKED,
         },
     )
     scanner = Scanner(gh, ScanOptions(vendor_author="Odoo Mates", ignore_owners={"OdooMates"}))
@@ -138,8 +140,14 @@ def test_scan_finds_copies_and_skips_own_and_unrelated_repos():
     assert leak.odoo_versions == {"12.0"}
     assert leak.priority == "high"
 
-    scanner.add_forks(findings)
-    assert leak.forks == ["someone/fork"] and leak.fork_count == 3
+    scanner.enrich(findings)
+    # Only forks that still hold the module count; "other/emptied" no longer does.
+    assert leak.forks == {"someone/fork": "main"} and leak.fork_count == 3
+    assert leak.default_branch == "main"
+    assert not leak.whole_repo
+    assert leak.folder_links() == ["https://github.com/leaker/addons/tree/main/custom/om_dynamic_reports"]
+    solo = next(f for f in findings if f.repo == "solo/om_dynamic_reports")
+    assert solo.whole_repo and solo.folder_links() == []
 
 
 def test_scan_respects_min_confidence():

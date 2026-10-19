@@ -172,8 +172,10 @@ class GitHub:
         data = self._json("GET", f"/repos/{repo}/git/trees/{quote(ref, safe='')}", params={"recursive": "1"})
         return [entry["path"] for entry in data.get("tree", []) if entry.get("type") == "blob"]
 
-    def forks(self, repo: str, limit: int = 100) -> list[str]:
-        return [f["full_name"] for f in self._paginate(f"/repos/{repo}/forks", limit=limit)]
+    def forks(self, repo: str, limit: int = 100) -> dict[str, str]:
+        """Fork name -> its default branch."""
+        found = self._paginate(f"/repos/{repo}/forks", limit=limit)
+        return {f["full_name"]: f.get("default_branch") or "HEAD" for f in found}
 
     def issues(self, repo: str, label: str) -> Iterator[dict[str, Any]]:
         return self._paginate(f"/repos/{repo}/issues", {"state": "all", "labels": label}, limit=10_000)

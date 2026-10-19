@@ -21,25 +21,38 @@ def make_finding(repo="leaker/addons", license_="OPL-1"):
         score=110,
         reasons=["folder matches"],
         files={"om_paid": f"https://github.com/{repo}/tree/abc/om_paid"},
-        forks=["a/fork"],
+        forks={"a/fork": "dev"},
         fork_count=2,
+        default_branch="main",
     )
 
 
-def test_dmca_draft_names_the_work_the_copy_and_forks():
-    draft = dmca_draft(make_finding())
+def test_dmca_draft_follows_githubs_form():
+    draft = dmca_draft([make_finding()])
     assert "https://apps.odoo.com/apps/modules/17.0/om_paid" in draft
-    assert "https://github.com/leaker/addons/tree/abc/om_paid" in draft
-    assert "https://github.com/a/fork" in draft
-    assert "1 more forks" in draft
-    assert "OPL-1 license, which does not allow" in draft
+    assert "**Specific files**" in draft and "**Entire repositories**" not in draft
+    assert "https://github.com/leaker/addons/tree/main/om_paid" in draft  # current branch, not the commit
+    assert "https://github.com/a/fork/tree/dev/om_paid" in draft
+    assert "https://github.com/a/fork\n" in draft  # repo URL alone, as the fork field wants
+    assert "may not publish, distribute" in draft
+    assert "Alleged infringers (GitHub users)**\na, leaker" in draft
     assert "penalty of perjury" in draft
     assert "I have read and understand GitHub's Guide" in draft
-    assert "GitHub user: https://github.com/leaker" in draft
+
+
+def test_dmca_draft_combines_leaks_and_separates_whole_repos():
+    whole = make_finding("solo/om_paid")
+    whole.files = {"(repository root)": "https://github.com/solo/om_paid"}
+    whole.forks = {}
+    draft = dmca_draft([make_finding(), whole])
+    entire = draft.split("**Entire repositories**")[1].split("**")[0]
+    assert "https://github.com/solo/om_paid" in entire
+    assert "leaker/addons" not in entire
+    assert draft.count("**Copyrighted work**") == 1
 
 
 def test_dmca_draft_flags_open_licenses_for_a_human_to_explain():
-    assert "[EXPLAIN WHY" in dmca_draft(make_finding(license_="LGPL-3"))
+    assert "[EXPLAIN WHY" in dmca_draft([make_finding(license_="LGPL-3")])
 
 
 def test_issue_body_carries_the_key():
@@ -61,6 +74,7 @@ def test_local_state_round_trip(tmp_path):
 def test_write_report(tmp_path):
     md, js = write_report([make_finding()], [make_finding("old/repo")], tmp_path)
     assert "1 new" in md.read_text()
+    assert "DMCA notice draft for all new leaks" in md.read_text()
     assert json.loads(js.read_text())["known"][0]["repo"] == "old/repo"
 
 

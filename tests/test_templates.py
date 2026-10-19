@@ -2,6 +2,7 @@ import pytest
 import yaml
 
 from odoo_code_radar import templates
+from odoo_code_radar.config import from_dict
 
 
 @pytest.mark.parametrize(
@@ -24,3 +25,16 @@ def test_workflow_schedules(schedule, cron):
 def test_bad_schedule_is_refused():
     with pytest.raises(ValueError, match="daily, weekly, monthly"):
         templates.cron_for("sometimes")
+
+
+def test_template_repo_matches_the_package():
+    from pathlib import Path
+
+    root = Path(__file__).parent.parent / "template"
+    assert (root / ".github/workflows/odoo-code-radar.yml").read_text() == templates.workflow("weekly")
+    assert from_dict(yaml.safe_load((root / "odoo-code-radar.yml").read_text()) or {}).author == ""
+
+
+def test_workflow_reads_author_from_settings():
+    workflow = yaml.safe_load(templates.workflow("weekly"))
+    assert workflow["jobs"]["scan"]["steps"][-1]["with"]["author"] == "${{ vars.RADAR_AUTHOR }}"

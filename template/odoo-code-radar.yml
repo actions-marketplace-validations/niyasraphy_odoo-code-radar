@@ -1,0 +1,27 @@
+# Optional settings for odoo-code-radar. Docs: https://github.com/niyasraphy/odoo-code-radar
+#
+# You don't need to edit this file: the RADAR_AUTHOR variable in Settings is enough.
+# Never put a token here. It belongs in the RADAR_TOKEN secret.
+
+# Your author name on apps.odoo.com (instead of the RADAR_AUTHOR variable):
+# author: Your Company
+
+# More accurate: read your modules from your own repos. RADAR_TOKEN then needs
+# "Contents: Read" on them.
+# sources:
+#   - repo: you/paid-apps
+#     branches: ["17.0", "18.0"]
+
+# OPL-1 and other proprietary apps are always watched. LGPL-3 apps may legally be
+# shared, so they are off by default.
+# include_lgpl: true
+
+# low, medium (default) or high
+# min_confidence: high
+
+# Your own GitHub accounts, and repos you allowed: never reported.
+# ignore_owners: [your-account]
+# ignore_repos: [customer/allowed-repo]
+
+# Technical names to skip.
+# exclude_modules: [some_module]

@@ -338,7 +338,7 @@ def scan(
     is_known = reporter.is_known if reporter else local.is_known
     new = [f for f in findings if not is_known(f)]
     known = [f for f in findings if is_known(f)]
-    scanner.add_forks(new)
+    scanner.enrich(new)
 
     for finding in new:
         issue_url = ""

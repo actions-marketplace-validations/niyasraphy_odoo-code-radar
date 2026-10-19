@@ -1,5 +1,17 @@
 # Changelog
 
+## 0.1.1
+
+- DMCA drafts follow GitHub's takedown form: entire repositories and single folders are listed
+  separately, folder links point at the current branch, and fork URLs come as the form wants them.
+- Only forks that still contain the module are listed. Forks often differ from their parent.
+- Reports end with one DMCA draft covering all new leaks, instead of one per leak.
+- Each leak shows whether the whole repository or only a folder is a copy.
+- The Action reads the author name from the `RADAR_AUTHOR` variable and explains clearly when the name
+  or the token is missing.
+- A template repository for weekly scans without installing anything.
+- GitHub actions updated to their Node.js 24 versions.
+
 ## 0.1.0
 
 First release.
