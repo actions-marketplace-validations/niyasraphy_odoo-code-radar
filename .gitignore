@@ -1,0 +1,15 @@
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+dist/
+build/
+.coverage
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# local scan results
+reports/
+.odoo-code-radar/
+.env

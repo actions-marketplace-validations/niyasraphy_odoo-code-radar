@@ -1,0 +1,82 @@
+name: Odoo Code Radar
+description: Protect your paid Odoo apps and intellectual property. Finds copies in public GitHub repos and opens an issue for each new one.
+author: niyasraphy
+branding:
+  icon: radio
+  color: purple
+
+inputs:
+  token:
+    description: Token for GitHub search and for reading your module repo. Stays inside this workflow run.
+    required: true
+  issues-token:
+    description: Token used to open issues. Defaults to the workflow's own token.
+    default: ${{ github.token }}
+  config:
+    description: Config file in your repo.
+    default: odoo-code-radar.yml
+  author:
+    description: Your author name on apps.odoo.com.
+    default: ""
+  repos:
+    description: Your module repos (owner/name), space separated.
+    default: ""
+  include-lgpl:
+    description: Also watch LGPL-3 and other open-source modules.
+    default: "false"
+  issues-repo:
+    description: Where issues go. Defaults to this repository; "none" disables issues.
+    default: ${{ github.repository }}
+  python-version:
+    description: Python used to run odoo-code-radar.
+    default: "3.12"
+
+runs:
+  using: composite
+  steps:
+    - uses: actions/setup-python@v5
+      with:
+        python-version: ${{ inputs.python-version }}
+
+    - name: Install odoo-code-radar
+      shell: bash
+      run: pip install --quiet "$GITHUB_ACTION_PATH"
+
+    - name: Remember the store listing between runs
+      uses: actions/cache@v4
+      with:
+        path: .odoo-code-radar
+        key: odoo-code-radar-${{ github.run_id }}
+        restore-keys: odoo-code-radar-
+
+    - name: Scan
+      shell: bash
+      # Inputs are passed through the environment, never pasted into the script.
+      env:
+        ODOO_CODE_RADAR_TOKEN: ${{ inputs.token }}
+        ODOO_CODE_RADAR_ISSUES_TOKEN: ${{ inputs.issues-token }}
+        RADAR_CONFIG: ${{ inputs.config }}
+        RADAR_AUTHOR: ${{ inputs.author }}
+        RADAR_REPOS: ${{ inputs.repos }}
+        RADAR_INCLUDE_LGPL: ${{ inputs.include-lgpl }}
+        RADAR_ISSUES_REPO: ${{ inputs.issues-repo }}
+      run: |
+        args=()
+        if [ -f "$RADAR_CONFIG" ]; then args+=(--config "$RADAR_CONFIG"); fi
+        if [ -n "$RADAR_AUTHOR" ]; then args+=(--author "$RADAR_AUTHOR"); fi
+        for repo in $RADAR_REPOS; do args+=(--repo "$repo"); done
+        if [ "$RADAR_INCLUDE_LGPL" = "true" ]; then args+=(--include-lgpl); fi
+        if [ "$RADAR_ISSUES_REPO" = "none" ]; then
+          args+=(--no-issues)
+        else
+          args+=(--issues --issues-repo "$RADAR_ISSUES_REPO")
+        fi
+        odoo-code-radar scan "${args[@]}"
+
+    - name: Keep the report
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: odoo-code-radar-report
+        path: reports/
+        if-no-files-found: ignore

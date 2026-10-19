@@ -1,0 +1,73 @@
+[build-system]
+requires = ["hatchling>=1.24"]
+build-backend = "hatchling.build"
+
+[project]
+name = "odoo-code-radar"
+dynamic = ["version"]
+description = "Protect your paid Odoo apps and intellectual property: find copies in public GitHub repositories, with a ready DMCA draft for each leak."
+readme = "README.md"
+requires-python = ">=3.10"
+license = "MIT"
+license-files = ["LICENSE"]
+authors = [{ name = "niyasraphy", email = "niyasraphyk@gmail.com" }]
+keywords = ["odoo", "dmca", "piracy", "leak-detection", "github", "odoo-apps", "copyright", "intellectual-property", "cli"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Environment :: Console",
+    "Framework :: Odoo",
+    "Intended Audience :: Developers",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Software Development",
+]
+dependencies = [
+    "typer>=0.12",
+    "rich>=13",
+    "requests>=2.31",
+    "pyyaml>=6",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=8", "pytest-cov>=5", "ruff>=0.6", "mypy>=1.11", "types-requests", "types-PyYAML", "build>=1.2", "twine>=5"]
+
+[project.scripts]
+odoo-code-radar = "odoo_code_radar.cli:run"
+
+[project.urls]
+Homepage = "https://github.com/niyasraphy/odoo-code-radar"
+Issues = "https://github.com/niyasraphy/odoo-code-radar/issues"
+
+[tool.hatch.version]
+path = "src/odoo_code_radar/__init__.py"
+
+[tool.hatch.build.targets.sdist]
+include = ["src", "tests", "README.md", "CHANGELOG.md", "LICENSE"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "--cov=odoo_code_radar --cov-report=term-missing"
+
+[tool.ruff]
+line-length = 110
+target-version = "py310"
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "B", "UP", "SIM", "RUF"]
+ignore = [
+    "B008",  # typer.Option() in defaults is how typer works
+    "UP045", # Optional[...] is required by typer on Python 3.10
+    "UP007",
+]
+
+[tool.ruff.format]
+exclude = ["*.md"]
+
+[tool.mypy]
+files = ["src"]
+strict = true
+ignore_missing_imports = true
