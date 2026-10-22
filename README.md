@@ -9,13 +9,15 @@ unauthorized copy once, and hands you a ready DMCA notice draft. You decide what
 Free and open source. It runs only on your machine or in your own GitHub Actions. There is no server,
 no account and no service behind it, so your token and results never reach the authors of this tool.
 
+![odoo-code-radar demo: a scan finds unauthorized copies, opens GitHub issues with DMCA drafts, and runs on a schedule](https://raw.githubusercontent.com/niyasraphy/odoo-code-radar/main/docs/demo.gif)
+
 ```
 $ odoo-code-radar scan --author "Your Company"
 Watching 30 modules (12 open-license modules skipped, see --include-lgpl)
 Searching GitHub. Code search allows 10 queries a minute, so this takes about 8 min.
 
-     Module                 License  Repository                               Confidence  Forks
- 🔴  your_module_accountant OPL-1    https://github.com/someone/odoo18-addons  high (110)  3
+     Module                 License  Repository                                    Confidence  Forks
+ 🔴  your_module_accountant OPL-1    https://github.com/radar-demo-1/odoo18-addons  high (110)  3
 
 1 new unauthorized copy, 0 already reported. DMCA drafts are in the report.
 Report: reports/odoo-code-radar-2026-10-19-061502.md

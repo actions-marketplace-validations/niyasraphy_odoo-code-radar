@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.1.4
+
+- README: a demo GIF showing a scan, the GitHub issue with its DMCA draft, and scheduling.
+- Examples use made-up repository owners instead of real GitHub accounts.
+
 ## 0.1.3
 
 - Shorter Action description (the GitHub Marketplace allows 125 characters).
