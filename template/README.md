@@ -125,7 +125,7 @@ Open the failed run. The first lines say what is missing:
 
 ## What an issue looks like
 
-> **[OPL-1] om_dynamic_reports found in someone/recruitment_uat**
+> **[OPL-1] om_dynamic_reports found in radar-demo-1/odoo-addons**
 >
 > | | |
 > |---|---|
